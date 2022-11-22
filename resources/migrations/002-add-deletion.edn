@@ -1,0 +1,4 @@
+{:up ["ALTER TABLE files ADD COLUMN delete_token_digest TEXT"
+      "ALTER TABLE files ADD COLUMN deleted BOOL NOT NULL DEFAULT FALSE"]
+:down ["ALTER TABLE files DROP COLUMN delete_token_digest"
+       "ALTER TABLE files DROP COLUMN deleted"]}
