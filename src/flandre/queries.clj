@@ -61,3 +61,18 @@
   (let [query {:delete-from :files
                :where [:= :files/tag tag]}]
     (jdbc/execute! db (sql/format query))))
+
+(defn insert-url-info [db tag redirect-to ip]
+  (let [query {:insert-into :urls
+               :values [{:tag tag
+                         :redirect-to redirect-to
+                         :uploader-ip ip
+                         :uploaded-at [:datetime]}]}]
+    (jdbc/execute! db (sql/format query))))
+
+(defn get-url-info [db tag]
+  (let [query {:select :*
+               :from :urls
+               :where [:= :tag tag]}]
+    (-> (jdbc/execute! db (sql/format query))
+        first)))

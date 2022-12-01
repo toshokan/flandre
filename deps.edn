@@ -1,12 +1,13 @@
 {:paths ["src" "resources" "target"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
         org.clojure/clojurescript {:mvn/version "1.11.54"}
+        org.clojure/core.specs.alpha {:mvn/version "0.2.62"}
         re-frame/re-frame {:mvn/version "1.3.0"}
         integrant/integrant {:mvn/version "0.8.0"}
         metosin/reitit {:mvn/version "0.5.18"}
+        metosin/muuntaja {:mvn/version "0.6.8"}
         ring/ring-core {:mvn/version "1.9.6"}
         ring/ring-jetty-adapter {:mvn/version "1.9.6"}
-        ring/ring-json {:mvn/version "0.5.1"}
         org.xerial/sqlite-jdbc {:mvn/version "3.39.4.1"}
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.847"}
         com.github.seancorfield/honeysql {:mvn/version "2.4.947"}

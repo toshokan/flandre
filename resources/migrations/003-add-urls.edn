@@ -1,0 +1,8 @@
+{:up ["
+CREATE TABLE urls (
+  tag TEXT NOT NULL PRIMARY KEY,
+  redirect_to TEXT NOT NULL,
+  uploader_ip TEXT NOT NULL,
+  uploaded_at TEXT NOT NULL
+)"]
+ :down ["DROP TABLE urls"]}

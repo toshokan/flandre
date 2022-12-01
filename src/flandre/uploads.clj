@@ -17,10 +17,6 @@
   (-> (r/response "not found")
       (r/status 404)))
 
-(defn- bad-token-format []
-  (-> (r/response "bad token format")
-      (r/status 400)))
-
 (defn get-file-handler [req]
   (let [tag (get-in req [:path-params :tag])
         files-root (get-in req [:cfg :files-root])
@@ -34,22 +30,14 @@
                       (format "attachment;filename=\"%s\"" tag))))
       (not-found))))
 
-(defn- bad-token-format? [req]
-  (let [length-str (get-in req [:headers "content-length"])
-        length (Integer/parseInt length-str)]
-    (> length 100)))
-
 (defn delete-file-handler [req]
   (let [tag (get-in req [:path-params :tag])
+        delete-token (get-in req [:body-params :delete-token])
         db (:db req)]
-    (if (bad-token-format? req)
-      (bad-token-format)
-      (do
-        (->> (:body req)
-             slurp
-             core/get-token-digest
-             (queries/mark-file-deleted db tag))
-        (r/response nil)))))
+    (->> delete-token
+         core/get-token-digest
+         (queries/mark-file-deleted db tag))
+        (r/response nil)))
 
 (defn- past-rate-limit? [req]
   (let [db (:db req)
