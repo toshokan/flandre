@@ -1,0 +1,3 @@
+{:main remilia.core
+ :optimizations :none
+ :output-to "target/public/js/app.js"}
