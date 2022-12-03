@@ -1,6 +1,6 @@
 # flandre
 
-A simple file host and URL shortener in the style of [pomf.se](https://pomf.se) and [uguu.se](https://uguu.se).
+A simple file host, URL shortener, and paste repository in the style of [pomf.se](https://pomf.se) and [uguu.se](https://uguu.se).
 
 ## prior art
 

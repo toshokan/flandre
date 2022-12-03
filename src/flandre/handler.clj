@@ -5,6 +5,7 @@
             [reitit.coercion.spec :as cs]
             [ring.middleware.resource :as res]
             [flandre.uploads :as uploads]
+            [flandre.pastes :as pastes]
             [flandre.urls :as urls]
             [muuntaja.middleware :as mu]))
 
@@ -40,7 +41,9 @@
       ["/u/:tag" {:get urls/get-url-handler}]
       ["/u" {:post {:handler urls/register-url-handler
                     :coercion cs/coercion
-                    :parameters {:body :flandre.contract/register-url-request}}}]]]
+                    :parameters {:body :flandre.contract/register-url-request}}}]
+      ["/p/:tag" {:get pastes/get-paste-handler}]
+      ["/p" {:post pastes/upload-paste-handler}]]]
     {:data {:middleware [coerce-exceptions-middleware
                          reitit.ring.coercion/coerce-request-middleware]}})
    (ring/create-resource-handler {:path "/"})

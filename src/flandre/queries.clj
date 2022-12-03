@@ -2,7 +2,7 @@
   (:require [honey.sql :as sql]
             [next.jdbc :as jdbc]))
 
-(defn count-files-in-last [db uploader seconds]
+(defn- count-in-last [db table uploader seconds]
   (let [time-shift (str "-" seconds " seconds")
         query {:select [[:%count.* :count]]
                :from :files
@@ -12,6 +12,12 @@
                         :files/uploaded_at
                         [:datetime "now" time-shift]]]}]
     (:count (jdbc/execute-one! db (sql/format query)))))
+
+(defn count-files-in-last [db uploader seconds]
+  (count-in-last db :files uploader seconds))
+
+(defn count-pastes-in-last [db uploader seconds]
+  (count-in-last db :pastes uploader seconds))
 
 (defn insert-file-info [db tag name ip expires-in delete-token-digest]
   (let [expiry-shift (str "+" expires-in " seconds")
@@ -74,5 +80,17 @@
   (let [query {:select :*
                :from :urls
                :where [:= :tag tag]}]
-    (-> (jdbc/execute! db (sql/format query))
-        first)))
+    (jdbc/execute-one! db (sql/format query))))
+
+(defn insert-paste-info [db tag ip]
+  (let [query {:insert-into :pastes
+               :values [{:tag tag
+                         :uploader-ip ip
+                         :uploaded-at [:datetime]}]}]
+    (jdbc/execute! db (sql/format query))))
+
+(defn get-paste-info [db tag]
+  (let [query {:select :*
+               :from :pastes
+               :where [:= :tag tag]}]
+    (jdbc/execute-one! db (sql/format query))))
