@@ -7,15 +7,8 @@
             [flandre.limits :as limits]
             [flandre.queries :as queries]
             [flandre.files :as files]
-            [flandre.core :as core]))
-
-(defn- rate-limit-exceeded []
-  (-> (r/response "slow down")
-      (r/status 429)))
-
-(defn- not-found []
-  (-> (r/response "not found")
-      (r/status 404)))
+            [flandre.core :as core]
+            [flandre.responses :as resp]))
 
 (defn get-file-handler [req]
   (let [tag (get-in req [:path-params :tag])
@@ -24,11 +17,8 @@
         info (queries/get-file-info db tag)]
     (if info
       (let [file (files/get-file tag files-root)]
-        (-> (r/response (:contents file))
-            (r/header "content-length" (:length file))
-            (r/header "content-disposition"
-                      (format "attachment;filename=\"%s\"" tag))))
-      (not-found))))
+        (resp/uploaded-file file tag))
+      (resp/not-found))))
 
 (defn delete-file-handler [req]
   (let [tag (get-in req [:path-params :tag])
@@ -73,12 +63,11 @@
         files (vals (:multipart-params req))
         file-count (count files)]
     (cond
-      (empty? files) (-> (r/response "bad request")
-                         (r/status 400))
+      (empty? files) (-> (resp/bad-request))
       (= 1 file-count) (r/response (nth files 0))
       :else (r/response files))))
 
 (defn upload-file-handler [req]
   (if (past-rate-limit? req)
-    (rate-limit-exceeded)
+    (resp/rate-limit-exceeded)
     (upload-files req)))

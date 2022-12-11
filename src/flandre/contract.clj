@@ -4,7 +4,7 @@
 
 (defn- max-len [n]
   (fn [v]
-    (< (.length v) n)))
+    (<= (.length v) n)))
 
 (defn- between [min max]
   (fn [v]
@@ -25,6 +25,11 @@
                        string?
                        (max-len 100)))
 
+(s/def ::tag (s/and
+              string?
+              (s/spec #(not (empty? %)))))
+
+
 (s/def ::delete-file-request
   (s/keys :req-in [::delete-token]))
 
@@ -34,4 +39,3 @@
 
 (s/def ::register-url-request
   (s/keys :req-un [::redirect-to]))
-

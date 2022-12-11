@@ -4,9 +4,12 @@
             [reitit.coercion :as co]
             [reitit.coercion.spec :as cs]
             [ring.middleware.resource :as res]
+            [flandre.contract]
             [flandre.uploads :as uploads]
             [flandre.pastes :as pastes]
             [flandre.urls :as urls]
+            [flandre.responses :as resp]
+            [flandre.middleware :as mw]
             [muuntaja.middleware :as mu]))
 
 (defn inject-depends [depends]
@@ -14,29 +17,25 @@
     (fn [req]
       (handler (merge req depends)))))
 
-(def coerce-exceptions-middleware
-  (fn [handler]
+(defn create-default-handler []
+  (let [handler (ring/create-resource-handler {:path "/"})]
     (fn [req]
-      (try
-        (handler req)
-        (catch Exception e
-          (if-let [[code body]
-                   (case (:type (ex-data e))
-                     :reitit.coercion/request-coercion [400 "bad request"]
-                     :reitit.coercion/response-coercion [500 "server error"]
-                     nil)]
-            {:status code
-             :body body}
-            (throw e)))))))
+      (let [resp (handler req)]
+        (if-not resp
+          (resp/bad-request)
+          resp)))))
 
 (defn router [db cfg]
   (ring/ring-handler
    (ring/router
     [["/api"
-      ["/f/:tag" {:get uploads/get-file-handler
+      ["/f/:tag" {:get {:handler uploads/get-file-handler
+                        :coercion cs/coercion
+                        :parameters {:path {:tag :flandre.contract/tag}}}
                   :delete {:handler uploads/delete-file-handler
                            :coercion cs/coercion
-                           :parameters {:body :flandre.contract/delete-file-request}}}]
+                           :parameters {:path {:tag :flandre.contract/tag}
+                                        :body :flandre.contract/delete-file-request}}}]
       ["/f" {:post uploads/upload-file-handler}]
       ["/u/:tag" {:get urls/get-url-handler}]
       ["/u" {:post {:handler urls/register-url-handler
@@ -44,8 +43,8 @@
                     :parameters {:body :flandre.contract/register-url-request}}}]
       ["/p/:tag" {:get pastes/get-paste-handler}]
       ["/p" {:post pastes/upload-paste-handler}]]]
-    {:data {:middleware [coerce-exceptions-middleware
+    {:data {:middleware [mw/coerce-exceptions
                          reitit.ring.coercion/coerce-request-middleware]}})
-   (ring/create-resource-handler {:path "/"})
+   (create-default-handler)
    {:middleware [(inject-depends {:db db :cfg cfg})
                  mu/wrap-format]}))

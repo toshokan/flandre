@@ -1,6 +1,7 @@
 (ns flandre.urls
   (:require [flandre.core :as core]
             [flandre.queries :as queries]
+            [flandre.responses :as resp]
             [ring.util.response :as r]))
 
 (defn get-url-handler [req]
@@ -8,11 +9,8 @@
         tag (get-in req [:path-params :tag])
         info (queries/get-url-info db tag)]
     (if info
-      (-> (r/response nil)
-          (r/header "location" (:urls/redirect_to info))
-          (r/status 302))
-      (-> (r/response "not found")
-          (r/status 404)))))
+      (resp/redirect (:urls/redirect_to info))
+      (resp/not-found))))
 
 (defn register-url-handler [req]
   (let [db (:db req)
