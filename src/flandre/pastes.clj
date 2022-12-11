@@ -2,6 +2,7 @@
   (:require [flandre.core :as core]
             [flandre.files :as files]
             [flandre.queries :as queries]
+            [flandre.responses :as resp]
             [ring.util.response :as r]))
 
 (defn- store-paste [db root uploader stream]
@@ -15,14 +16,10 @@
         db (:db req)
         pastes-root (get-in req [:cfg :pastes-root])
         info (queries/get-paste-info db tag)]
-    (println (pr-str info))
     (if info
       (let [file (files/get-file tag pastes-root)]
-        (-> (r/response (:contents file))
-            (r/header "content-length" (:length file))
-            (r/header "content-type" "text/plain")))
-      (-> (r/response "not found")
-          (r/status 404)))))
+        (resp/paste file))
+      resp/not-found)))
 
 (defn upload-paste-handler [req]
   (let [db (:db req)

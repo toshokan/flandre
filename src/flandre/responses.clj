@@ -37,6 +37,15 @@
   (-> resp
       (r/header "content-disposition" "inline")))
 
+(defn- content-type [resp type]
+  (-> resp
+      (r/header "content-type" type)))
+
 (defn uploaded-file [file-info name]
   (-> (file file-info)
       (attachment name)))
+
+(defn paste [file-info]
+  (-> (file file-info)
+      (inline)
+      (content-type "text/plain")))
