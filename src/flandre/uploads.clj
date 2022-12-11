@@ -17,7 +17,7 @@
         info (queries/get-file-info db tag)]
     (if info
       (let [file (files/get-file tag files-root)]
-        (resp/uploaded-file file tag))
+        (resp/uploaded-file file (:files/original_name info)))
       (resp/not-found))))
 
 (defn delete-file-handler [req]
