@@ -17,13 +17,16 @@
     (fn [req]
       (handler (merge req depends)))))
 
-(defn create-default-handler []
-  (let [handler (ring/create-resource-handler {:path "/"})]
-    (fn [req]
-      (let [resp (handler req)]
-        (if-not resp
-          (resp/bad-request)
-          resp)))))
+(defn create-default-handler [cfg]
+  (if (:serve-resources? cfg)
+    (let [handler (ring/create-resource-handler {:path "/"})]
+      (fn [req]
+        (let [resp (handler req)]
+          (if-not resp
+            (resp/bad-request)
+            resp))))
+    (fn [_] (resp/bad-request))))
+  
 
 (defn- with-handler [handler]
   {:handler handler})
@@ -78,6 +81,6 @@
          (add-paste-routes cfg))]
     {:data {:middleware [mw/handle-exceptions
                          reitit.ring.coercion/coerce-request-middleware]}})
-   (create-default-handler)
+   (create-default-handler cfg)
    {:middleware [(inject-depends {:db db :cfg cfg})
                  mu/wrap-format]}))
