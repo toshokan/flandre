@@ -11,6 +11,11 @@
   ([desc] (-> (error-response "bad request" desc)
               (r/status 400))))
 
+(defn server-error
+  ([] (server-error nil))
+  ([desc] (-> (error-response "server error" desc)
+              (r/status 500))))
+
 (defn rate-limit-exceeded []
   (-> (error-response "slow down" "rate limit exceeded")
       (r/status 429)))

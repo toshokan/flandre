@@ -43,7 +43,7 @@
                     :parameters {:body :flandre.contract/register-url-request}}}]
       ["/p/:tag" {:get pastes/get-paste-handler}]
       ["/p" {:post pastes/upload-paste-handler}]]]
-    {:data {:middleware [mw/coerce-exceptions
+    {:data {:middleware [mw/handle-exceptions
                          reitit.ring.coercion/coerce-request-middleware]}})
    (create-default-handler)
    {:middleware [(inject-depends {:db db :cfg cfg})

@@ -19,7 +19,7 @@
     (if info
       (let [file (files/get-file tag pastes-root)]
         (resp/paste file))
-      resp/not-found)))
+      (resp/not-found))))
 
 (defn upload-paste-handler [req]
   (let [db (:db req)
