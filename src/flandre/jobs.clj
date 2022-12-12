@@ -5,7 +5,7 @@
 
 (defn clean-up-files [cfg db]
   (future
-    (let [files-root (:files-root cfg)
+    (let [files-root (get-in cfg [:files :root])
           cleanup-batch-size (:cleanup-batch-size cfg)
           cleanup-interval (* (:cleanup-interval cfg)
                               1000)]
