@@ -4,7 +4,7 @@
             [reitit.coercion :as co]
             [reitit.coercion.spec :as cs]
             [ring.middleware.resource :as res]
-            [flandre.contract]
+            [flandre.contract :as c]
             [flandre.uploads :as uploads]
             [flandre.pastes :as pastes]
             [flandre.urls :as urls]
@@ -25,24 +25,34 @@
           (resp/bad-request)
           resp)))))
 
+(defn- with-handler [handler]
+  {:handler handler})
+
+(defn- path-coerce [data key spec]
+  (-> (assoc data :coercion cs/coercion)
+      (assoc-in [:parameters :path key] spec)))
+
+(defn- body-coerce [data spec]
+  (-> (assoc data :coercion cs/coercion)
+      (assoc-in [:parameters :body] spec)))
+
 (defn router [db cfg]
   (ring/ring-handler
    (ring/router
     [["/api"
-      ["/f/:tag" {:get {:handler uploads/get-file-handler
-                        :coercion cs/coercion
-                        :parameters {:path {:tag :flandre.contract/tag}}}
-                  :delete {:handler uploads/delete-file-handler
-                           :coercion cs/coercion
-                           :parameters {:path {:tag :flandre.contract/tag}
-                                        :body :flandre.contract/delete-file-request}}}]
-      ["/f" {:post uploads/upload-file-handler}]
-      ["/u/:tag" {:get urls/get-url-handler}]
-      ["/u" {:post {:handler urls/register-url-handler
-                    :coercion cs/coercion
-                    :parameters {:body :flandre.contract/register-url-request}}}]
-      ["/p/:tag" {:get pastes/get-paste-handler}]
-      ["/p" {:post pastes/upload-paste-handler}]]]
+      ["/f/:tag" {:get (-> (with-handler uploads/get-file-handler)
+                           (path-coerce :tag ::c/tag))
+                  :delete (-> (with-handler uploads/delete-file-handler)
+                              (path-coerce :tag ::c/tag)
+                              (body-coerce ::c/delete-file-request))}]
+      ["/f" {:post (with-handler uploads/upload-file-handler)}]
+      ["/u/:tag" {:get (-> (with-handler urls/get-url-handler)
+                           (path-coerce :tag ::c/tag))}]
+      ["/u" {:post (-> (with-handler urls/register-url-handler)
+                       (body-coerce ::c/register-url-request))}]
+      ["/p/:tag" {:get (-> (with-handler pastes/get-paste-handler)
+                           (path-coerce :tag ::c/tag))}]
+      ["/p" {:post (with-handler pastes/upload-paste-handler)}]]]
     {:data {:middleware [mw/handle-exceptions
                          reitit.ring.coercion/coerce-request-middleware]}})
    (create-default-handler)
