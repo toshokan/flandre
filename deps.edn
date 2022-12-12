@@ -17,4 +17,6 @@
                      com.bhauman/figwheel-main {:mvn/version "0.2.18"}}}
   :test {:main-opts ["-m" "kaocha.runner"]
          :extra-deps {lambdaisland/kaocha {:mvn/version "1.71.1119"}
-                      org.clojure/test.check {:mvn/version "1.1.1"}}}}}
+                      org.clojure/test.check {:mvn/version "1.1.1"}}}
+  :build-cljs {:main-opts ["-m" "figwheel.main" "-bo" "release"]
+               :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.18"}}}}}

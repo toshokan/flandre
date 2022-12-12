@@ -1,0 +1,4 @@
+{:main remilia.core
+ :clean-outputs true
+ :optimizations :advanced
+ :output-to "target/public/js/app.js"}
