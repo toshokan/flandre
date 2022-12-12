@@ -18,9 +18,16 @@
                        :db (ig/ref :app/db)}})
 
 (defmethod ig/init-key :app/config [_ _]
-  (ig/read-string
-   (slurp (or (System/getenv "FLANDRE_CONFIG")
-              "config.edn"))))
+  (let [config (ig/read-string
+                (slurp (or (System/getenv "FLANDRE_CONFIG")
+                           "config.edn")))]
+    (merge {:port 80
+            :serve-resources? false
+            :expiry-time 86400
+            :rate-period 60
+            :rate-period-limit 5
+            :cleanup-batch-size 250
+            :cleanup-interval 5} config)))
 
 (defmethod ig/init-key :app/db [_ {:keys [config]}]
   (let [db-spec (:db config)
