@@ -7,7 +7,8 @@
   (future
     (let [files-root (:files-root cfg)
           cleanup-batch-size (:cleanup-batch-size cfg)
-          cleanup-interval (:cleanup-interval cfg)]
+          cleanup-interval (* (:cleanup-interval cfg)
+                              1000)]
       (while (not (Thread/interrupted))
         (let [infos (queries/get-expired-or-deleted-files db cleanup-batch-size)]
           (doseq [info infos]
