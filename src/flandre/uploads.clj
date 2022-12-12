@@ -12,7 +12,7 @@
 
 (defn get-file-handler [req]
   (let [tag (get-in req [:path-params :tag])
-        files-root (get-in req [:cfg :files-root])
+        files-root (get-in req [:cfg :files :root])
         db (:db req)
         info (queries/get-file-info db tag)]
     (if info
@@ -51,7 +51,7 @@
         cfg (:cfg req)]
     (fn [{:keys [filename content-type stream]}]
       (store-file db
-                  (:files-root cfg)
+                  (get-in cfg [:files :root])
                   (:expiry-time cfg)
                   filename
                   (:remote-addr req)

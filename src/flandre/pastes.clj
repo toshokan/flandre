@@ -14,7 +14,7 @@
 (defn get-paste-handler [req]
   (let [tag (get-in req [:path-params :tag])
         db (:db req)
-        pastes-root (get-in req [:cfg :pastes-root])
+        pastes-root (get-in req [:cfg :pastes :root])
         info (queries/get-paste-info db tag)]
     (if info
       (let [file (files/get-file tag pastes-root)]
@@ -24,6 +24,6 @@
 (defn upload-paste-handler [req]
   (let [db (:db req)
         cfg (:cfg req)
-        pastes-root (:pastes-root cfg)
+        pastes-root (get-in cfg [:pastes :root])
         uploader (:remote-addr req)]
     (store-paste db pastes-root uploader (:body req))))
