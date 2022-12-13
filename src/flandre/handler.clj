@@ -91,6 +91,7 @@
          (add-url-routes cfg)
          (add-paste-routes cfg))]
     {:data {:middleware [mw/handle-exceptions
+                         mw/ensure-readable-files
                          reitit.ring.coercion/coerce-request-middleware]}})
    (create-default-handler cfg)
    {:middleware [(inject-depends {:db db :cfg cfg})

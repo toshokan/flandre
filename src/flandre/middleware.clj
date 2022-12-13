@@ -2,7 +2,8 @@
   (:require [reitit.ring.coercion]
             [reitit.coercion :as c]
             [ring.util.request :as rq]
-            [flandre.responses :as resp]))
+            [flandre.responses :as resp])
+  (:import (java.io File)))
 
 (defn- get-exception-response [ex]
   (case (:type (ex-data ex))
@@ -20,6 +21,16 @@
             (nil? len) (resp/bad-request)
             (> len cap) (resp/too-large)
             :else (handler req)))))))
+
+(defn ensure-readable-files [handler]
+  (fn [req]
+    (let [resp (handler req)
+          body (:body resp)]
+      (if (and (instance? File body)
+               (not (and (.exists body)
+                         (.canRead body))))
+        (resp/server-error)
+        resp))))
 
 (def handle-exceptions
   (fn [handler]
