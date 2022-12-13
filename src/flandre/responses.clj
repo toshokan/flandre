@@ -16,6 +16,10 @@
   ([desc] (-> (error-response "server error" desc)
               (r/status 500))))
 
+(defn too-large []
+  (-> (error-response "too large" "payload too large")
+      (r/status 413)))
+
 (defn rate-limit-exceeded []
   (-> (error-response "slow down" "rate limit exceeded")
       (r/status 429)))

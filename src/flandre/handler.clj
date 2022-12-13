@@ -39,21 +39,30 @@
   (-> (assoc data :coercion cs/coercion)
       (assoc-in [:parameters :body] spec)))
 
+(defn- middleware [data mw]
+  (update-in data [:middleware]
+             (fn [mws]
+               (if mws (conj mws mw) [mw]))))
+
 (defn- add-routes [root disabled? routes]
   (if-not disabled?
     (into root routes)
     root))
 
+
+
 (defn- add-file-routes [root cfg]
-  (add-routes
-   root
-   (get-in cfg [:files :disabled?])
-   [["/f/:tag" {:get (-> (with-handler uploads/get-file-handler)
+  (let [max-size (get-in cfg [:files :max-size])]
+    (add-routes
+     root
+     (get-in cfg [:files :disabled?])
+     [["/f/:tag" {:get (-> (with-handler uploads/get-file-handler)
                            (path-coerce :tag ::c/tag))
                   :delete (-> (with-handler uploads/delete-file-handler)
                               (path-coerce :tag ::c/tag)
                               (body-coerce ::c/delete-file-request))}]
-    ["/f" {:post (with-handler uploads/upload-file-handler)}]]))
+      ["/f" {:post (-> (with-handler uploads/upload-file-handler)
+                       (middleware (mw/max-size max-size)))}]])))
 
 (defn- add-url-routes [root cfg]
   (add-routes
@@ -65,12 +74,14 @@
                      (body-coerce ::c/register-url-request))}]]))
 
 (defn- add-paste-routes [root cfg]
-  (add-routes
-   root
-   (get-in cfg [:pastes :disabled?])
-   [["/p/:tag" {:get (-> (with-handler pastes/get-paste-handler)
-                         (path-coerce :tag ::c/tag))}]
-    ["/p" {:post (with-handler pastes/upload-paste-handler)}]]))
+  (let [max-size (get-in cfg [:pastes :max-size])]
+    (add-routes
+     root
+     (get-in cfg [:pastes :disabled?])
+     [["/p/:tag" {:get (-> (with-handler pastes/get-paste-handler)
+                           (path-coerce :tag ::c/tag))}]
+      ["/p" {:post (-> (with-handler pastes/upload-paste-handler)
+                       (middleware (mw/max-size max-size)))}]])))
 
 (defn router [db cfg]
   (ring/ring-handler
