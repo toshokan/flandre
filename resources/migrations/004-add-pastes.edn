@@ -2,6 +2,6 @@
 CREATE TABLE pastes (
   tag TEXT NOT NULL PRIMARY KEY,
   uploader_ip TEXT NOT NULL,
-  uploaded_at TEXT NOT NULL
+  uploaded_at TIMESTAMP NOT NULL
 )"]
  :down ["DROP TABLE pastes"]}
