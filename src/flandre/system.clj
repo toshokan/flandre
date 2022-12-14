@@ -54,8 +54,10 @@
 (defmethod ig/halt-key! :app/retention-job [_ job]
   (future-cancel job))
 
-(def system
+(defn start []
   (ig/init config))
 
 (comment
-  (ig/halt! system))
+  (def system (start))
+  (ig/halt! system)
+  )
