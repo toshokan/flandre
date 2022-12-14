@@ -2,3 +2,5 @@
 /.nrepl-port
 *.sqlite
 /target/public/
+/target/classes/
+/target/*.jar
