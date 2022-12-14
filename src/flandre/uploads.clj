@@ -1,10 +1,5 @@
 (ns flandre.uploads
-  (:require [clojure.string :as s]
-            [next.jdbc :as jdbc]
-            [honey.sql :as sql]
-            [ring.util.response :as r]
-            [ring.middleware.multipart-params :as mp]
-            [flandre.limits :as limits]
+  (:require [flandre.limits :as limits]
             [flandre.queries :as queries]
             [flandre.files :as files]
             [flandre.core :as core]
@@ -27,7 +22,7 @@
     (->> delete-token
          core/get-token-digest
          (queries/mark-file-deleted db tag))
-        (r/response nil)))
+    (resp/without-body)))
 
 (defn- past-rate-limit? [req]
   (let [db (:db req)
@@ -38,7 +33,8 @@
 
 (defn- store-file [db root expires-in name uploader stream]
   (let [tag (core/create-tag)
-        delete-token (core/create-delete-token)]
+        delete-token (core/create-delete-token)
+        name (or name tag)]
     (files/upload-file tag stream root)
     (let [expiry (queries/insert-file-info db tag name uploader expires-in (:digest delete-token))]
       {:filename name
@@ -46,28 +42,17 @@
        :expiry expiry
        :delete-token (:token delete-token)})))
 
-(defn- make-store-fn [req]
+(defn- upload-file [req]
   (let [db (:db req)
-        cfg (:cfg req)]
-    (fn [{:keys [filename content-type stream]}]
-      (store-file db
-                  (get-in cfg [:files :root])
-                  (:expiry-time cfg)
-                  filename
-                  (:remote-addr req)
-                  stream))))
-
-(defn- upload-files [req]
-  (let [store-fn (make-store-fn req)
-        req (mp/multipart-params-request req {:store store-fn})
-        files (vals (:multipart-params req))
-        file-count (count files)]
-    (cond
-      (empty? files) (-> (resp/bad-request))
-      (= 1 file-count) (r/response (nth files 0))
-      :else (r/response files))))
+        root (get-in req [:cfg :files :root])
+        exp (get-in req [:cfg :expiry-time])
+        name (get-in req [:parameters :query :filename])
+        ip (:remote-addr req)
+        stream (:body req)]
+    (resp/with-body
+     (store-file db root exp name ip stream))))
 
 (defn upload-file-handler [req]
   (if (past-rate-limit? req)
     (resp/rate-limit-exceeded)
-    (upload-files req)))
+    (upload-file req)))

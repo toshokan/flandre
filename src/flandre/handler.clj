@@ -3,6 +3,7 @@
             [reitit.ring.coercion]
             [reitit.coercion :as co]
             [reitit.coercion.spec :as cs]
+            [ring.middleware.params :as rp]
             [ring.middleware.resource :as res]
             [flandre.contract :as c]
             [flandre.uploads :as uploads]
@@ -35,6 +36,10 @@
   (-> (assoc data :coercion cs/coercion)
       (assoc-in [:parameters :path key] spec)))
 
+(defn- query-coerce [data spec]
+  (-> (assoc data :coercion cs/coercion)
+      (assoc-in [:parameters :query] spec)))
+
 (defn- body-coerce [data spec]
   (-> (assoc data :coercion cs/coercion)
       (assoc-in [:parameters :body] spec)))
@@ -49,8 +54,6 @@
     (into root routes)
     root))
 
-
-
 (defn- add-file-routes [root cfg]
   (let [max-size (get-in cfg [:files :max-size])]
     (add-routes
@@ -62,7 +65,8 @@
                               (path-coerce :tag ::c/tag)
                               (body-coerce ::c/delete-file-request))}]
       ["/f" {:post (-> (with-handler uploads/upload-file-handler)
-                       (middleware (mw/max-size max-size)))}]])))
+                       (middleware (mw/max-size max-size))
+                       (query-coerce ::c/upload-file-query))}]])))
 
 (defn- add-url-routes [root cfg]
   (add-routes
@@ -91,8 +95,9 @@
          (add-url-routes cfg)
          (add-paste-routes cfg))]
     {:data {:middleware [mw/handle-exceptions
-                         mw/ensure-readable-files
-                         reitit.ring.coercion/coerce-request-middleware]}})
+                         mw/wrap-query-string
+                         reitit.ring.coercion/coerce-request-middleware
+                         mw/ensure-readable-files]}})
    (create-default-handler cfg)
    {:middleware [(inject-depends {:db db :cfg cfg})
                  mu/wrap-format]}))

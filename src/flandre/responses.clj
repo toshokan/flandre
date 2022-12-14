@@ -33,6 +33,12 @@
       (r/header "location" to)
       (r/status 302)))
 
+(defn with-body [body]
+  (r/response body))
+
+(defn without-body []
+  (r/response nil))
+
 (defn- file [file-info]
   (-> (r/response (:contents file-info))
       (r/header "content-length" (:length file-info))))

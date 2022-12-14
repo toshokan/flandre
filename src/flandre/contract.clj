@@ -25,6 +25,10 @@
                        string?
                        (max-len 100)))
 
+(s/def ::filename string?)
+
+(s/def ::upload-file-query (s/keys :opt-un [::filename]))
+
 (s/def ::tag (s/and
               string?
               (s/spec #(not (empty? %)))))

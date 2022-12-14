@@ -2,6 +2,7 @@
   (:require [reitit.ring.coercion]
             [reitit.coercion :as c]
             [ring.util.request :as rq]
+            [ring.middleware.params :as rp]
             [flandre.responses :as resp])
   (:import (java.io File)))
 
@@ -10,6 +11,12 @@
     ::c/request-coercion (resp/bad-request "invalid request format")
     ::c/response-coercion (resp/server-error "error occurred while preparing response")
     (resp/server-error)))
+
+(defn wrap-query-string [handler]
+  (fn [req]
+    (let [encoding (or (rq/character-encoding req)
+                       "UTF-8")]
+      (handler (rp/assoc-query-params req encoding)))))
 
 (defn max-size [cap]
   (fn [handler]
@@ -32,10 +39,9 @@
         (resp/server-error)
         resp))))
 
-(def handle-exceptions
-  (fn [handler]
-    (fn [req]
-      (try
-        (handler req)
-        (catch Exception ex
-          (get-exception-response ex))))))
+(defn handle-exceptions [handler]
+  (fn [req]
+    (try
+      (handler req)
+      (catch Exception ex
+        (get-exception-response ex)))))
