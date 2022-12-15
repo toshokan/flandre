@@ -22,5 +22,6 @@
                       org.clojure/test.check {:mvn/version "1.1.1"}}}
   :build-cljs {:main-opts ["-m" "figwheel.main" "-bo" "release"]
                :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.18"}}}
-  :build {:deps {org.clojure/tools.build {:mvn/version "0.8.4"}}
+  :build {:jvm-opts ["-Dclojure.compiler.direct-linking=true"]
+          :deps {org.clojure/tools.build {:mvn/version "0.8.4"}}
           :ns-default build}}}

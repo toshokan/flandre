@@ -7,6 +7,9 @@
             [ragtime.next-jdbc :as rj]
             [next.jdbc :as jdbc]))
 
+(def ^:private migration-set
+  (rj/load-resources "migrations"))
+
 (def config
   {:app/config {}
    :app/db {:config (ig/ref :app/config)}
@@ -32,7 +35,7 @@
 (defmethod ig/init-key :app/db [_ {:keys [config]}]
   (let [db-spec (:db config)
         store (rj/sql-database db-spec)
-        migrations (rj/load-resources "migrations")
+        migrations migration-set
         index (rt/into-index migrations)]
     (rt/migrate-all store index migrations)
     (jdbc/get-datasource db-spec)))
